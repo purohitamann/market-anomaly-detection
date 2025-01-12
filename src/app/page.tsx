@@ -1,101 +1,160 @@
-import Image from "next/image";
+'use client';
 
-export default function Home() {
-  return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
+import { useEffect, useState } from 'react';
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
-        </div>
-      </main>
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
-    </div>
-  );
+// Chart.js + react-chartjs-2
+import {
+    Chart as ChartJS,
+    CategoryScale,
+    LinearScale,
+    PointElement,
+    LineElement,
+    Title,
+    Tooltip,
+    Legend,
+} from 'chart.js';
+import { Line } from 'react-chartjs-2';
+
+// Register the Chart.js components
+ChartJS.register(
+    CategoryScale,
+    LinearScale,
+    PointElement,
+    LineElement,
+    Title,
+    Tooltip,
+    Legend
+);
+
+// Type for the data we receive from /api/market-data
+interface MarketDataResponse {
+    symbol: string;
+    days: number;
+    labels: string[];        // Dates as strings, e.g., ["2023-09-01", "2023-09-02", ...]
+    actualPrices: number[];  // Actual stock prices, e.g., [100.34, 101.12, ...]
+    predictions: number[];   // Predictions for future prices, e.g., [102.35]
+}
+
+export default function HomePage() {
+    const [symbol, setSymbol] = useState('AAPL'); // Example stock symbol
+    const [days, setDays] = useState(7); // Number of days to fetch
+    const [marketData, setMarketData] = useState<MarketDataResponse | null>(null);
+    const [error, setError] = useState<string | null>(null);
+
+    // Your Flask server's base URL
+    const FLASK_SERVER_BASE = 'http://localhost:5005';
+
+    // Fetch data from the Flask server
+    async function fetchMarketData() {
+        try {
+            setError(null); // Clear previous errors
+            setMarketData(null); // Reset market data
+
+            const url = `${FLASK_SERVER_BASE}/api/market-data?symbol=${symbol}&days=${days}`;
+            console.log('Fetching:', url);
+            const res = await fetch(url);
+
+            if (!res.ok) {
+                throw new Error(`Error fetching data: ${res.statusText}`);
+            }
+
+            const data: MarketDataResponse = await res.json();
+            console.log('Response Data:', data);
+            setMarketData(data);
+        } catch (err: any) {
+            console.error('Error:', err.message);
+            setError(err.message);
+        }
+    }
+
+    // Fetch data on the first render
+    useEffect(() => {
+        fetchMarketData();
+    }, []); // Empty dependency array means it runs once on mount
+
+    // Prepare chart data once we have marketData
+    let chartData;
+    if (marketData) {
+        // Add an extra label for the prediction
+        const labelsWithPrediction = [...marketData.labels, 'Next Day'];
+
+        // Extend actual prices with a null placeholder for the prediction
+        const actualPricesExtended = [...marketData.actualPrices, null];
+
+        // Add the prediction as the last data point
+        const predictionsExtended = Array(marketData.labels.length).fill(null);
+        predictionsExtended.push(marketData.predictions[0]); // Add the prediction
+
+        chartData = {
+            labels: labelsWithPrediction,
+            datasets: [
+                {
+                    label: `Actual Prices (${marketData.symbol})`,
+                    data: actualPricesExtended,
+                    borderColor: 'blue',
+                    backgroundColor: 'rgba(0,0,255,0.2)',
+                },
+                {
+                    label: `Prediction (${marketData.symbol})`,
+                    data: predictionsExtended,
+                    borderColor: 'red',
+                    backgroundColor: 'rgba(255,0,0,0.2)',
+                },
+            ],
+        };
+    }
+
+    // Chart options
+    const options = {
+        responsive: true,
+        plugins: {
+            legend: {
+                position: 'top' as const,
+            },
+            title: {
+                display: true,
+                text: `Stock Market Data for ${symbol.toUpperCase()} (Last ${days} Days)`,
+            },
+        },
+    };
+
+    return (
+        <main style={{ padding: '10rem', width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+            <h1>Stock Market Chart</h1>
+
+            {/* Inputs for symbol and days */}
+            <div style={{ marginBottom: '1rem' }}>
+                <label style={{ marginRight: 8 }}>Symbol:</label>
+                <input
+                    type="text"
+                    value={symbol}
+                    onChange={(e) => setSymbol(e.target.value.toUpperCase())}
+                    style={{ marginRight: 16 }}
+                />
+
+                <label style={{ marginRight: 8 }}>Days:</label>
+                <input
+                    type="number"
+                    value={days}
+                    onChange={(e) => setDays(Number(e.target.value))}
+                    style={{ marginRight: 16 }}
+                />
+
+                <button onClick={fetchMarketData}>Fetch Data</button>
+            </div>
+
+            {/* Error Message */}
+            {error && <div style={{ color: 'red' }}>Error: {error}</div>}
+
+            {/* Loading State */}
+            {!marketData && !error && <div>Loading data...</div>}
+
+            {/* Chart Display */}
+            {marketData && (
+                <div style={{ width: '80%', maxWidth: 800 }}>
+                    <Line data={chartData!} options={options} />
+                </div>
+            )}
+        </main>
+    );
 }
