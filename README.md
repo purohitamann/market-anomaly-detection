@@ -1,6 +1,8 @@
 Market Anomaly Detection Project
 Welcome to the Market Anomaly Detection project! This application combines machine learning, real-time market data, and AI-powered reasoning to predict market anomalies and explain predictions with detailed insights.
-
+![alt text](<Screenshot 2025-01-12 at 14.31.17.png>)
+![alt text](<Screenshot 2025-01-12 at 14.31.27.png>)
+![alt text](<Screenshot 2025-01-12 at 14.31.48.png>)
 📚 Overview
 This project analyzes market data in real-time, predicts potential market anomalies (e.g., crashes), and provides explanations for its predictions using Retrieval-Augmented Generation (RAG) powered by Groq AI. The goal is to empower investors with actionable insights and help them make informed decisions.
 
