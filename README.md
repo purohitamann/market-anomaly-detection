@@ -1,36 +1,77 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+Market Anomaly Detection Project
+Welcome to the Market Anomaly Detection project! This application combines machine learning, real-time market data, and AI-powered reasoning to predict market anomalies and explain predictions with detailed insights.
 
-## Getting Started
+📚 Overview
+This project analyzes market data in real-time, predicts potential market anomalies (e.g., crashes), and provides explanations for its predictions using Retrieval-Augmented Generation (RAG) powered by Groq AI. The goal is to empower investors with actionable insights and help them make informed decisions.
 
-First, run the development server:
+🚀 Features
+Market Anomaly Detection: A trained Random Forest model predicts market crashes based on real-time data.
+AI-Powered Insights: Explanations are generated using Groq RAG, incorporating recent news and feature analysis.
+Data Visualization: Stock prices and predictions are displayed dynamically with an intuitive frontend.
+Real-Time Data Integration: Uses Yahoo Finance API for fetching live market data.
+Customizable Parameters: Users can select stock symbols and timeframes.
+🛠️ Tech Stack
+Backend: Python, Flask, Yahoo Finance API, Groq API
+Frontend: React, Next.js, TailwindCSS, Chart.js
+Machine Learning: Random Forest model trained on financial datasets with SMOTE for handling imbalanced data
+API Communication: Flask REST API
+Environment Management: dotenv for configuration
+📈 Model Details
+Model Used: Random Forest Classifier
+Key Features:
+XAU BGNL (Gold Spot)
+BDIY (Baltic Dry Index)
+DXY (Dollar Index)
+VIX (CBOE Volatility Index)
+JPY (Japanese Yen)
+GBP (British Pound)
+And more...
+Preprocessing: Feature scaling, SMOTE for class balancing
+Prediction Output:
+1: Market Crash
+0: No Crash
+🔗 Links
+GitHub Repository: Market Anomaly Detection GitHub
+Model Details: Model Notebook
+API Documentation: API Endpoints
+👨‍💻 About the Developer
+Aman Hiran Purohit
+A passionate developer specializing in AI, ML, and financial analytics. With expertise in building scalable, data-driven solutions, I strive to bridge the gap between technology and real-world applications.
 
-```bash
+📬 Contact
+Feel free to connect with me for collaboration or queries:
+
+Email: amanpurohit2004@gmail.com
+LinkedIn: Aman Hiran Purohit
+GitHub: @purohitamann
+💡 How to Run the Project
+Clone the Repository:
+
+bash
+Copy code
+git clone https://github.com/purohitamann/market-anomaly-detection.git
+cd market-anomaly-detection
+Setup Environment:
+
+Install dependencies:
+bash
+Copy code
+pip install -r requirements.txt
+Set up .env.local file for API keys:
+makefile
+Copy code
+GROQ_API_KEY=your_groq_api_key
+NEXT_PUBLIC_FLASK_SERVER_BASE=http://localhost:5005
+Run the Backend:
+
+bash
+Copy code
+python model.py
+Run the Frontend:
+
+bash
+Copy code
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+Access the Application: Open http://localhost:3000 in your browser.
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
-
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.

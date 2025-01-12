@@ -6,7 +6,11 @@ import pickle
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 import logging
-
+from groq import Groq
+import os
+from dotenv import load_dotenv
+import json
+load_dotenv(".env.local")
 # Configure logging for easier debugging
 logging.basicConfig(level=logging.DEBUG)
 
@@ -374,6 +378,86 @@ def market_data():
     except Exception as e:
         logging.error(f"Unexpected error: {e}")
         return jsonify({"error": "An unexpected error occurred.", "details": str(e)}), 500
+
+client = Groq(api_key=os.getenv("GROQ_API_KEY"))
+def perform_rag(prediction_data):
+    """
+    Perform RAG using Groq API to explain the prediction and contextualize it with real-world news.
+    """
+    system_prompt = """
+    You are an expert financial analyst. Your task is to explain predictions from a market anomaly detection model.
+    Analyze the prediction, justify it based on the feature data, and provide real-world context by incorporating relevant
+    financial news. Return the explanation as plain text paragraphs. Do not include any JSON or structured data in your
+    response. Use clear and concise language suitable for investors.
+    """
+
+    user_prompt = f"""
+    **Prediction Details:**
+    - Prediction: {prediction_data['prediction']}
+    - Probability: {prediction_data['probability']}
+    - Features: {json.dumps(prediction_data['features'], indent=2)}
+
+    **Context:**
+    - Retrieve recent news related to global markets, commodities, currencies, bonds, and geopolitical events.
+    - Explain the prediction and its probability, incorporating feature data and news.
+    """
+
+    try:
+        response = client.chat.completions.create(
+            model="llama-3.3-70b-specdec",
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": user_prompt}
+            ]
+        )
+
+        return response.choices[0].message.content
+
+    except Exception as e:
+        logging.error(f"Error with Groq API: {e}")
+        return "An error occurred while generating the explanation. Please try again later."
+
+@app.route('/api/forecast-analysis', methods=['GET'])
+def forecast_analysis():
+    """
+    Endpoint to analyze the model prediction and explain it using Groq RAG.
+    Combines market data results with prediction details and generates a detailed explanation.
+    """
+    try:
+        # Fetch market data and prediction results
+        start_date = (datetime.datetime.now() - datetime.timedelta(days=10)).strftime("%Y-%m-%d")
+        df_raw = fetch_market_features(symbol_map, start_date=start_date)
+        df_input = format_dataset_to_required(df_raw)
+        df_input.drop(columns=["dummy_feature"], axis=1, inplace=True)
+        df_input.drop(columns=["CRY"], axis=1, inplace=True)
+        latest_data = df_input.iloc[-1:].fillna(0).infer_objects(copy=False)
+
+        X_input = latest_data.values  # Prepare input for prediction
+        model_prediction = model.predict(X_input)[0]
+        model_probability = model.predict_proba(X_input)[:, 1][0] if hasattr(model, "predict_proba") else None
+
+        # Prepare data for explanation
+        prediction_data = {
+            "prediction": "Crash" if model_prediction == 1 else "No Crash",
+            "probability": f"{model_probability * 100:.2f}%" if model_probability else "N/A",
+            "features": latest_data.to_dict(orient="records")[0],
+        }
+
+        # Generate explanation using Groq RAG
+        explanation = perform_rag(prediction_data)
+
+        # Return explanation as plain text
+        return jsonify({
+            "explanation": explanation
+        }), 200
+
+    except Exception as e:
+        logging.error(f"Error in /api/forecast-analysis: {e}")
+        return jsonify({
+            "error": "An unexpected error occurred during forecast analysis.",
+            "details": str(e)
+        }), 500
+
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5005, debug=True)
