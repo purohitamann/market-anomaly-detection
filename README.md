@@ -65,14 +65,9 @@ Copy code
 GROQ_API_KEY=your_groq_api_key
 NEXT_PUBLIC_FLASK_SERVER_BASE=http://localhost:5005
 Run the Backend:
-
-bash
-Copy code
 python model.py
-Run the Frontend:
 
-bash
-Copy code
+Run the Frontend:
 npm install
 npm run dev
 Access the Application: Open http://localhost:3000 in your browser.
